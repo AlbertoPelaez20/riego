@@ -1,0 +1,4 @@
+adafruit-io
+adafruit-circuitpython-adafruitio
+flask
+requests
