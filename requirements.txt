@@ -1,4 +1,5 @@
 adafruit-io
 adafruit-circuitpython-adafruitio
 flask
+gunicorn
 requests
