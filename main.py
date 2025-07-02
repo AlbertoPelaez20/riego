@@ -88,6 +88,8 @@ def telegram_webhook():
 
 # ------------------- MAIN -------------------
 
-# Arranca MQTT en background
-iniciar_mqtt()
+if __name__ == "__main__":
+    Thread(target=iniciar_mqtt, daemon=True).start()
+    app.run(host="0.0.0.0", port=8080)
+
 
