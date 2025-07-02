@@ -33,9 +33,15 @@ def enviar_a_adafruit(valor):
     data = {"value": valor}
     try:
         r = requests.post(url, json=data, headers=headers)
-        print(f"📤 Enviado a Adafruit IO: {valor}" if r.status_code == 200 else f"❌ Error Adafruit: {r.text}")
+        if r.status_code == 200:
+            print(f"📤 Enviado a Adafruit IO: {valor}")
+        else:
+            print(f"❌ Error Adafruit: {r.text}")
+            send_telegram_message(f"❌ Error enviando a Adafruit: {r.text}")  # Manda error al chat
     except Exception as e:
         print("🚫 Excepción al enviar a Adafruit:", e)
+        send_telegram_message("🚫 No se pudo enviar a Adafruit.")
+
 
 # ------------------- MQTT -------------------
 
