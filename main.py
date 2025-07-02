@@ -56,8 +56,8 @@ def iniciar_mqtt():
 # ------------------- FLASK -------------------
 
 app = Flask(__name__)
+@app.route("/", methods=["POST"])
 
-@app.route("/")
 def home():
     return "🌐 Backend activo - Adafruit IO ↔ Telegram"
 
