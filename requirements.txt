@@ -2,4 +2,5 @@ adafruit-io
 adafruit-circuitpython-adafruitio
 flask
 gunicorn
+setuptools
 requests
