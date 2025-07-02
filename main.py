@@ -56,13 +56,12 @@ def iniciar_mqtt():
 # ------------------- FLASK -------------------
 
 app = Flask(__name__)
-@app.route("/", methods=["POST"])
 
-def home():
-    return "🌐 Backend activo - Adafruit IO ↔ Telegram"
-
-@app.route(f"/webhook/{TELEGRAM_BOT_TOKEN}", methods=["POST"])
+@app.route("/", methods=["GET", "POST"])
 def telegram_webhook():
+    if request.method == "GET":
+        return "🌐 Backend activo - Adafruit IO ↔ Telegram"
+
     data = request.get_json()
     print("📥 Datos recibidos:", data)
     try:
@@ -91,5 +90,4 @@ def telegram_webhook():
 if __name__ == "__main__":
     Thread(target=iniciar_mqtt, daemon=True).start()
     app.run(host="0.0.0.0", port=8080)
-
 
