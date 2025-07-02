@@ -3,6 +3,7 @@ import requests
 from flask import Flask, request
 from threading import Thread
 from Adafruit_IO import MQTTClient
+import os
 
 # ------------------- CONFIGURACIÓN -------------------
 
@@ -21,10 +22,7 @@ def send_telegram_message(text):
     data = {"chat_id": TELEGRAM_USER_ID, "text": text}
     try:
         response = requests.post(url, data=data)
-        if response.status_code == 200:
-            print("✅ Mensaje enviado a Telegram.")
-        else:
-            print("⚠️ Error al enviar a Telegram:", response.text)
+        print("✅ Mensaje enviado" if response.status_code == 200 else f"⚠️ Telegram error: {response.text}")
     except Exception as e:
         print("🚫 Excepción al enviar a Telegram:", e)
 
@@ -34,21 +32,18 @@ def enviar_a_adafruit(valor):
     data = {"value": valor}
     try:
         r = requests.post(url, json=data, headers=headers)
-        if r.status_code == 200:
-            print(f"📤 Enviado a Adafruit IO: {valor}")
-        else:
-            print("❌ Error al enviar a Adafruit:", r.text)
+        print(f"📤 Enviado a Adafruit IO: {valor}" if r.status_code == 200 else f"❌ Error Adafruit: {r.text}")
     except Exception as e:
         print("🚫 Excepción al enviar a Adafruit:", e)
 
-# ------------------- MQTT CALLBACKS -------------------
+# ------------------- MQTT -------------------
 
 def connected(client):
     print("✅ Conectado a Adafruit IO!")
     client.subscribe(FEED_ESTADO)
 
 def message(client, feed_id, payload):
-    print(f"📨 Mensaje recibido en {feed_id}: {payload}")
+    print(f"📨 Mensaje en {feed_id}: {payload}")
     send_telegram_message(f"📡 Estado de la maceta: {payload}")
 
 def iniciar_mqtt():
@@ -56,7 +51,7 @@ def iniciar_mqtt():
     client.on_connect = connected
     client.on_message = message
     client.connect()
-    client.loop_blocking()
+    client.loop_background()
 
 # ------------------- FLASK -------------------
 
@@ -70,41 +65,29 @@ def home():
 def telegram_webhook():
     data = request.get_json()
     print("📥 Datos recibidos:", data)
-
     try:
         chat_id = data["message"]["chat"]["id"]
-        text = data["message"]["text"]
-
+        text = data["message"]["text"].lower().strip()
         if str(chat_id) == TELEGRAM_USER_ID:
-            cmd = text.lower().strip()
-
-            print("💬 Comando recibido de Telegram:", cmd)
-
-            if cmd in ["/riego_on", "/regar"]:
+            if text in ["/riego_on", "/regar"]:
                 enviar_a_adafruit("riego_on")
                 send_telegram_message("💧 Riego activado.")
-            elif cmd == "/riego_off":
+            elif text == "/riego_off":
                 enviar_a_adafruit("riego_off")
                 send_telegram_message("🚿 Riego desactivado.")
-            elif cmd == "/ok":
+            elif text == "/ok":
                 enviar_a_adafruit("ok")
                 send_telegram_message("✅ Estado 'ok' enviado.")
             else:
                 send_telegram_message("❓ Comando no reconocido. Usa:\n/riego_on\n/riego_off\n/ok")
         else:
             send_telegram_message("❌ Usuario no autorizado.")
-
     except Exception as e:
         print("❌ Error procesando mensaje:", e)
-
     return "OK", 200
-
-def iniciar_web():
-    app.run(host="0.0.0.0", port=8080)
 
 # ------------------- MAIN -------------------
 
-if __name__ == "__main__":
-    Thread(target=iniciar_web).start()
-    time.sleep(1)
-    iniciar_mqtt()
+# Arranca MQTT en background
+iniciar_mqtt()
+
