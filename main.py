@@ -8,7 +8,8 @@ import os
 # ------------------- CONFIGURACIÓN -------------------
 
 ADAFRUIT_IO_USERNAME = "doctorhouse"
-ADAFRUIT_IO_KEY = "aio_UwyK493ilX13uOIw21bmorXEW5cL"
+
+ADAFRUIT_IO_KEY = os.getenv("ADAFRUIT_IO_KEY")
 FEED_ESTADO = "estado"
 FEED_ALERTA = "alerta"
 
