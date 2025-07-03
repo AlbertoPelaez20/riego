@@ -80,7 +80,7 @@ def telegram_webhook():
         data = request.get_json(force=True)
         print("📥 Datos recibidos (JSON):", data)
 
-    try:
+  
         chat_id = data["message"]["chat"]["id"]
         text = data["message"]["text"].lower().strip()
         if str(chat_id) == TELEGRAM_USER_ID:
