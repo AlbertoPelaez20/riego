@@ -72,9 +72,14 @@ app = Flask(__name__)
 def telegram_webhook():
     if request.method == "GET":
         return "🌐 Backend activo - Adafruit IO ↔ Telegram"
-    
-    data = request.get_json()
-    print("📥 Datos recibidos:", data)
+
+    print("📥 Encabezados recibidos:", dict(request.headers))
+    print("📥 Cuerpo crudo:", request.data)
+
+    try:
+        data = request.get_json(force=True)
+        print("📥 Datos recibidos (JSON):", data)
+
     try:
         chat_id = data["message"]["chat"]["id"]
         text = data["message"]["text"].lower().strip()
