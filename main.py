@@ -1,15 +1,15 @@
 import time
 import requests
 from flask import Flask, request
-from threading import Thread
+from multiprocessing import Process
 from Adafruit_IO import MQTTClient
 import os
 
 # ------------------- CONFIGURACIÓN -------------------
 
 ADAFRUIT_IO_USERNAME = "doctorhouse"
-
 ADAFRUIT_IO_KEY = os.getenv("ADAFRUIT_IO_KEY")
+
 FEED_ESTADO = "estado"
 FEED_ALERTA = "alerta"
 
@@ -37,28 +37,32 @@ def enviar_a_adafruit(valor):
             print(f"📤 Enviado a Adafruit IO: {valor}")
         else:
             print(f"❌ Error Adafruit: {r.text}")
-            send_telegram_message(f"❌ Error enviando a Adafruit: {r.text}")  # Manda error al chat
+            send_telegram_message(f"❌ Error enviando a Adafruit: {r.text}")
     except Exception as e:
         print("🚫 Excepción al enviar a Adafruit:", e)
         send_telegram_message("🚫 No se pudo enviar a Adafruit.")
 
-
 # ------------------- MQTT -------------------
 
-def connected(client):
-    print("✅ Conectado a Adafruit IO!")
-    client.subscribe(FEED_ESTADO)
+def mqtt_loop():
+    def connected(client):
+        print("✅ Conectado a Adafruit IO!")
+        client.subscribe(FEED_ESTADO)
 
-def message(client, feed_id, payload):
-    print(f"📨 Mensaje en {feed_id}: {payload}")
-    send_telegram_message(f"📡 Estado de la maceta: {payload}")
+    def message(client, feed_id, payload):
+        print(f"📨 Mensaje en {feed_id}: {payload}")
+        send_telegram_message(f"📡 Estado de la maceta: {payload}")
 
-def iniciar_mqtt():
-    client = MQTTClient(ADAFRUIT_IO_USERNAME, ADAFRUIT_IO_KEY)
-    client.on_connect = connected
-    client.on_message = message
-    client.connect()
-    client.loop_background()
+    while True:
+        try:
+            client = MQTTClient(ADAFRUIT_IO_USERNAME, ADAFRUIT_IO_KEY)
+            client.on_connect = connected
+            client.on_message = message
+            client.connect()
+            client.loop_blocking()  # Espera bloqueante (más confiable que loop_background)
+        except Exception as e:
+            print("🔁 Error en MQTT, reconectando en 5 segundos:", e)
+            time.sleep(5)
 
 # ------------------- FLASK -------------------
 
@@ -68,7 +72,7 @@ app = Flask(__name__)
 def telegram_webhook():
     if request.method == "GET":
         return "🌐 Backend activo - Adafruit IO ↔ Telegram"
-
+    
     data = request.get_json()
     print("📥 Datos recibidos:", data)
     try:
@@ -95,6 +99,9 @@ def telegram_webhook():
 # ------------------- MAIN -------------------
 
 if __name__ == "__main__":
-    Thread(target=iniciar_mqtt, daemon=True).start()
-    app.run(host="0.0.0.0", port=8080)
+    # Ejecutar MQTT en proceso separado (más robusto que hilo)
+    mqtt_process = Process(target=mqtt_loop)
+    mqtt_process.start()
 
+    # Ejecutar Flask
+    app.run(host="0.0.0.0", port=8080)
