@@ -1,7 +1,7 @@
 import time
 import requests
 from flask import Flask, request
-from multiprocessing import Process
+from threading import Thread
 from Adafruit_IO import MQTTClient
 import os
 
@@ -106,13 +106,10 @@ def telegram_webhook():
         print("❌ Error procesando mensaje:", e)
     return "OK", 200
 
-# ------------------- MAIN -------------------
+# ------------------- INICIO AUTOMÁTICO (para Render) -------------------
 
-if __name__ == "__main__":
-    print("🚀 Iniciando backend Flask + MQTT...")
+print("🚀 Iniciando backend Flask + MQTT (con Thread)...")
 
-    mqtt_process = Process(target=mqtt_loop)
-    mqtt_process.start()
-
-    app.run(host="0.0.0.0", port=8080)
+mqtt_thread = Thread(target=mqtt_loop, daemon=True)
+mqtt_thread.start()
 
