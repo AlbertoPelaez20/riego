@@ -87,19 +87,34 @@ def telegram_webhook():
     print("📥 Datos recibidos:", data)
     try:
         chat_id = data["message"]["chat"]["id"]
-        text = data["message"]["text"].lower().strip()
+        text = data["message"]["text"].strip()
+
         if str(chat_id) == TELEGRAM_USER_ID:
-            if text in ["/riego_on", "/regar"]:
+            lower_text = text.lower()
+
+            if lower_text in ["/riego_on", "/regar"]:
                 enviar_a_adafruit("riego_on")
                 send_telegram_message("💧 Riego activado.")
-            elif text == "/riego_off":
+
+            elif lower_text == "/riego_off":
                 enviar_a_adafruit("riego_off")
                 send_telegram_message("🚿 Riego desactivado.")
-            elif text == "/ok":
+
+            elif lower_text == "/ok":
                 enviar_a_adafruit("ok")
                 send_telegram_message("✅ Estado 'ok' enviado.")
+
+            elif lower_text.startswith("/set_umbrales:"):
+                parametros = text[1:]  # Quita la barra inicial
+                enviar_a_adafruit(parametros)
+                send_telegram_message(f"📦 Parámetros enviados: `{parametros}`")
             else:
-                send_telegram_message("❓ Comando no reconocido. Usa:\n/riego_on\n/riego_off\n/ok")
+                send_telegram_message(
+                    "❓ Comando no reconocido. Usa:\n"
+                    "/riego_on\n"
+                    "/riego_off\n"
+                    "/set_umbrales:40,20,6.5,2000"
+                )
         else:
             send_telegram_message("❌ Usuario no autorizado.")
     except Exception as e:
