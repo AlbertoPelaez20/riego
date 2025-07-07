@@ -16,6 +16,11 @@ FEED_ALERTA = "alerta"
 TELEGRAM_BOT_TOKEN = "8084980297:AAGaQcduzT1BrkPX03ojtSEBGxVyXoA-tWg"
 TELEGRAM_USER_ID = "7088673190"
 
+if not ADAFRUIT_IO_KEY:
+    print("🚫 ERROR: ADAFRUIT_IO_KEY no está definida. Verifica las variables de entorno.")
+else:
+    print("🔐 ADAFRUIT_IO_KEY cargada correctamente.")
+
 # ------------------- FUNCIONES -------------------
 
 def send_telegram_message(text):
@@ -45,9 +50,12 @@ def enviar_a_adafruit(valor):
 # ------------------- MQTT -------------------
 
 def mqtt_loop():
+    print("🟡 mqtt_loop() iniciado...")
+
     def connected(client):
         print("✅ Conectado a Adafruit IO!")
         client.subscribe(FEED_ESTADO)
+        print(f"📡 Suscrito al feed: {FEED_ESTADO}")
 
     def message(client, feed_id, payload):
         print(f"📨 Mensaje en {feed_id}: {payload}")
@@ -55,11 +63,13 @@ def mqtt_loop():
 
     while True:
         try:
+            print("🔌 Intentando conectar a MQTT...")
             client = MQTTClient(ADAFRUIT_IO_USERNAME, ADAFRUIT_IO_KEY)
             client.on_connect = connected
             client.on_message = message
             client.connect()
-            client.loop_blocking()  # Espera bloqueante (más confiable que loop_background)
+            print("🔄 Esperando mensajes de Adafruit IO (loop_blocking)...")
+            client.loop_blocking()
         except Exception as e:
             print("🔁 Error en MQTT, reconectando en 5 segundos:", e)
             time.sleep(5)
@@ -72,7 +82,7 @@ app = Flask(__name__)
 def telegram_webhook():
     if request.method == "GET":
         return "🌐 Backend activo - Adafruit IO ↔ Telegram"
-    
+
     data = request.get_json()
     print("📥 Datos recibidos:", data)
     try:
@@ -99,9 +109,10 @@ def telegram_webhook():
 # ------------------- MAIN -------------------
 
 if __name__ == "__main__":
-    # Ejecutar MQTT en proceso separado (más robusto que hilo)
+    print("🚀 Iniciando backend Flask + MQTT...")
+
     mqtt_process = Process(target=mqtt_loop)
     mqtt_process.start()
 
-    # Ejecutar Flask
     app.run(host="0.0.0.0", port=8080)
+
