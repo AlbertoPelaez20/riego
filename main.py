@@ -27,14 +27,29 @@ else:
 
 # ------------------- FUNCIONES -------------------
 
+#def send_telegram_message(text):
+#    url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage"
+ #   data = {"chat_id": TELEGRAM_USER_ID, "text": text}
+#    try:
+#        response = requests.post(url, data=data)
+#        print("✅ Mensaje enviado" if response.status_code == 200 else f"⚠️ Telegram error: {response.text}")
+#    except Exception as e:
+ #       print("🚫 Excepción al enviar a Telegram:", e)
+
 def send_telegram_message(text):
     url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage"
-    data = {"chat_id": TELEGRAM_USER_ID, "text": text}
-    try:
-        response = requests.post(url, data=data)
-        print("✅ Mensaje enviado" if response.status_code == 200 else f"⚠️ Telegram error: {response.text}")
-    except Exception as e:
-        print("🚫 Excepción al enviar a Telegram:", e)
+    for user_id in TELEGRAM_USER_IDS:
+        data = {"chat_id": user_id, "text": text}
+        try:
+            response = requests.post(url, data=data)
+            print("✅ Mensaje enviado" if response.status_code == 200 else f"⚠️ Telegram error: {response.text}")
+        except Exception as e:
+            print("🚫 Excepción al enviar a Telegram:", e)
+
+
+
+
+
 
 def enviar_a_adafruit(valor):
     url = f"https://io.adafruit.com/api/v2/{ADAFRUIT_IO_USERNAME}/feeds/{FEED_ALERTA}/data"
