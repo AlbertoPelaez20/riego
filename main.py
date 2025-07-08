@@ -14,7 +14,11 @@ FEED_ESTADO = "estado"
 FEED_ALERTA = "alerta"
 
 TELEGRAM_BOT_TOKEN = "8084980297:AAGaQcduzT1BrkPX03ojtSEBGxVyXoA-tWg"
-TELEGRAM_USER_ID = "7088673190"
+#TELEGRAM_USER_ID = "7088673190"
+
+TELEGRAM_USER_IDS = ["7088673190", "7969804836"] 
+
+
 
 if not ADAFRUIT_IO_KEY:
     print("🚫 ERROR: ADAFRUIT_IO_KEY no está definida. Verifica las variables de entorno.")
@@ -89,7 +93,8 @@ def telegram_webhook():
         chat_id = data["message"]["chat"]["id"]
         text = data["message"]["text"].strip()
 
-        if str(chat_id) == TELEGRAM_USER_ID:
+        #if str(chat_id) == TELEGRAM_USER_ID:
+        if str(chat_id) in AUTHORIZED_USERS:
             lower_text = text.lower()
 
             if lower_text in ["/riego_on", "/regar"]:
