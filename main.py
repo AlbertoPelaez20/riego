@@ -109,7 +109,6 @@ def telegram_webhook():
         chat_id = data["message"]["chat"]["id"]
         text = data["message"]["text"].strip()
 
-        #if str(chat_id) == TELEGRAM_USER_ID:
         if str(chat_id) in AUTHORIZED_USERS:
             lower_text = text.lower()
 
@@ -121,6 +120,18 @@ def telegram_webhook():
                 enviar_a_adafruit("riego_off")
                 send_telegram_message("🚿 Riego desactivado.")
 
+            elif lower_text == "/activar_auto":
+                enviar_a_adafruit("activar_auto")
+                send_telegram_message("❓ Activación automática solicitada. Usa /confirmar_auto para confirmar o /cancelar_auto para cancelar.")
+
+            elif lower_text == "/confirmar_auto":
+                enviar_a_adafruit("confirmar_auto")
+                send_telegram_message("✅ Riego automático confirmado.")
+
+            elif lower_text == "/cancelar_auto":
+                enviar_a_adafruit("cancelar_auto")
+                send_telegram_message("🚫 Riego automático cancelado.")
+
             elif lower_text == "/ok":
                 enviar_a_adafruit("ok")
                 send_telegram_message("✅ Estado 'ok' enviado.")
@@ -129,11 +140,15 @@ def telegram_webhook():
                 parametros = text[1:]  # Quita la barra inicial
                 enviar_a_adafruit(parametros)
                 send_telegram_message(f"📦 Parámetros enviados: `{parametros}`")
+
             else:
                 send_telegram_message(
                     "❓ Comando no reconocido. Usa:\n"
                     "/riego_on\n"
                     "/riego_off\n"
+                    "/activar_auto\n"
+                    "/confirmar_auto\n"
+                    "/cancelar_auto\n"
                     "/set_umbrales:40,20,6.5,2000"
                 )
         else:
@@ -141,6 +156,7 @@ def telegram_webhook():
     except Exception as e:
         print("❌ Error procesando mensaje:", e)
     return "OK", 200
+
 
 # ------------------- INICIO AUTOMÁTICO (para Render) -------------------
 
