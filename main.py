@@ -140,7 +140,23 @@ def telegram_webhook():
                 parametros = text[1:]  # Quita la barra inicial
                 enviar_a_adafruit(parametros)
                 send_telegram_message(f"📦 Parámetros enviados: `{parametros}`")
-
+           
+            elif lower_text == "/ver_estado":
+                try:
+                    url = f"https://io.adafruit.com/api/v2/{ADAFRUIT_IO_USERNAME}/feeds/{FEED_ESTADO}/data/last"
+                    headers = {"X-AIO-Key": ADAFRUIT_IO_KEY}
+                    response = requests.get(url, headers=headers)
+                    if response.status_code == 200:
+                        dato = response.json()
+                        valor = dato["value"]
+                        fecha = dato["created_at"]
+                        send_telegram_message(f"📝 Último estado:\n{valor}\n🕒 {fecha}")
+                    else:
+                        send_telegram_message("⚠️ No se pudo obtener el estado.")
+                except Exception as e:
+                    print("🚫 Excepción al obtener estado:", e)
+                    send_telegram_message("🚫 Error al obtener el estado.")
+            
             else:
                 send_telegram_message(
                     "❓ Comando no reconocido. Usa:\n"
@@ -150,6 +166,7 @@ def telegram_webhook():
                     "/confirmar_auto\n"
                     "/cancelar_auto\n"
                     "/set_umbrales:40,20,6.5,2000"
+                    "/ver_estado"
                 )
         else:
             send_telegram_message("❌ Usuario no autorizado.")
