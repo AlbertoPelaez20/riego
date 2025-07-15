@@ -165,7 +165,7 @@ def telegram_webhook():
                     "/activar_auto\n"
                     "/confirmar_auto\n"
                     "/cancelar_auto\n"
-                    "/set_umbrales:40,20,6.5,2000"
+                    "/set_umbrales:40,20,6.5,2000\n""
                     "/ver_estado"
                 )
         else:
